@@ -3732,3 +3732,11 @@ void CorePlayer::set_pro_val_cb(ProgressValCb p_cb)
 	progress_val_cb_ = p_cb;
 }
 
+void CorePlayer::eixt()
+{
+	SDL_Event event;
+	event.type = FF_QUIT_EVENT;
+	event.user.data1 = m_is;
+	SDL_PushEvent(&event);
+}
+

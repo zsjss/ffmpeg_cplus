@@ -23,6 +23,7 @@ public:
 	int subtitle_thread();
 	void pause();
 	void play();
+	void eixt();
 	void seek_pos(int pos);
 	void set_win_size(WinSizeCb cb);
 	void set_st_tm_cb(TimeLabelCb s_cb);
