@@ -16,11 +16,9 @@ public:
 	virtual std::wstring GetWindowId() const override;
 	virtual UINT GetClassStyle() const override;
 	virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
-
 	virtual void InitWindow() override;
-
+	virtual void OnFinalMessage(HWND hWnd) override;
 	static void ShowAudioPlay(std::string path);
-
 
 public:
 	static const LPCTSTR kClassName;

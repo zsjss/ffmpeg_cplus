@@ -1,7 +1,7 @@
 #pragma once
 #include "common_args.h"
 
-using TimeLabelCb = std::function<void(std::wstring)>;
+using TimeLabelCb = std::function<void(int)>;
 using WinSizeCb = std::function<void(int, int)>;
 using ProgressValCb = std::function<void(int)>;
 

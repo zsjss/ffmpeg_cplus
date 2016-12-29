@@ -4,6 +4,9 @@
 using namespace ui;
 const LPCTSTR VedioPlayerForm::kClassName = L"VedioPlayWinForm";
 
+#define SLIDER_WIDTH_ADDITONAL   205
+#define WIN_HEIGHT_ADDITONAL     113
+
 VedioPlayerForm::VedioPlayerForm()
 {
 
@@ -70,30 +73,67 @@ void VedioPlayerForm::InitWindow()
 	btn_play_ = (ui::Button*)FindControl(L"btn_play");
 	btn_pause_ = (ui::Button*)FindControl(L"btn_pause");
 	vedio_show_ = (ui::Control*)FindControl(L"vedio_show");
+	item_list_ = (ui::ListBox*)FindControl(L"item_list");
+	list_box_ = (ui::VBox*)FindControl(L"list_box");
 
 	m_pRoot->AttachBubbledEvent(kEventClick, nbase::Bind(&VedioPlayerForm::OnEventClick, this, std::placeholders::_1));
-
 	input_vedio_->AttachButtonDown(nbase::Bind(&VedioPlayerForm::OnSliderButtonDown, this, std::placeholders::_1));
 	input_vedio_->AttachValueChange(nbase::Bind(&VedioPlayerForm::OnSliderEventChange, this, std::placeholders::_1));
 
-	auto st_tm_cb = ToWeakCallback([=](std::wstring path){
-		start_time_->SetText(path);
+	auto st_tm_cb = ToWeakCallback([=](int tns){
+		current_ts_ = tns;
+		int thh, tmm, tss;
+		thh = tns / 3600;
+		tmm = (tns % 3600) / 60;
+		tss = (tns % 60);
+		std::wstring timelong = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
+		start_time_->SetText(timelong);
 	});
 
-	auto end_tm_cb = ToWeakCallback([=](std::wstring path){
-		end_time_->SetText(path);
+	auto end_tm_cb = ToWeakCallback([=](int tns){
+		end_ts_ = tns;
+		int thh, tmm, tss;
+		thh = tns / 3600;
+		tmm = (tns % 3600) / 60;
+		tss = (tns % 60);
+		std::wstring timelong = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
+		end_time_->SetText(timelong);
 	});
 
 	auto pr_val_cb = ToWeakCallback([=](int val){
 		if (!slider_change_ && slider_change_pos_ <= val)
 		{
 			input_vedio_->SetValue(val);
+			if (val >=1000)
+			{
+				OnHandlePlayNext();
+			}
 		}
+	});
+
+	auto win_size_cb = ToWeakCallback([=](int width, int height){
+		int win_height = height + WIN_HEIGHT_ADDITONAL;
+		if (list_box_->IsVisible())
+		{
+			SetPos(UiRect(0, 0, width + list_box_->GetWidth(), win_height), SWP_NOMOVE);
+		}
+		else
+		{
+			SetPos(UiRect(0, 0, width, win_height), SWP_NOMOVE);
+		}
+		
+		int vedio_with = width - SLIDER_WIDTH_ADDITONAL;
+		input_vedio_->SetFixedWidth(vedio_with);
+		std::wstring bk_url = L"file='slider_gray.png' dest='5,8," + nbase::StringPrintf(L"%d", vedio_with-5) + L",13'";
+		input_vedio_->SetBkImage(bk_url);
+
+		::SetWindowPos(hwnd_, NULL, 0, 48, width, height, 0);
 	});
 
 	vedio_player_.SetStartTimeCb(st_tm_cb);
 	vedio_player_.SetEndTimeCb(end_tm_cb);
 	vedio_player_.SetProgressCb(pr_val_cb);
+	vedio_player_.SetWinSizeCb(win_size_cb);
 }
 
 bool VedioPlayerForm::OnEventClick(ui::EventArgs* args)
@@ -161,18 +201,11 @@ void VedioPlayerForm::OnPause()
 
 void VedioPlayerForm::OnPlay()
 {
-	HWND hwnd = CreateWin32(GetHWND());
-	ui::UiRect margin_rect = vedio_show_->GetMargin();
-	int width = vedio_show_->GetWidth();
-	int height = vedio_show_->GetHeight();
-	RECT rc;
-	rc.left = margin_rect.left;
-	rc.right = margin_rect.left + width;
-	rc.top = margin_rect.top + 48;
-	rc.bottom = margin_rect.top + height - 14;
-	::SetWindowPos(hwnd, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, 0);
+	hwnd_ = CreateWin32(GetHWND());
 
-	vedio_player_.Play(play_url_.c_str(), hwnd);
+	::SetWindowPos(hwnd_, NULL, 0, 48, 10, 10, 0);
+	
+	vedio_player_.Play(play_url_.c_str(), hwnd_);
 }
 
 bool VedioPlayerForm::OnSliderButtonDown(ui::EventArgs* arg)
@@ -247,5 +280,52 @@ void VedioPlayerForm::OnDelayClose()
 void VedioPlayerForm::OnClose()
 {
 	this->Close();
+}
+
+void VedioPlayerForm::OnHandlePlayNext()
+{
+	++vedio_list_index_;
+	if (item_list_->GetCount()>vedio_list_index_)
+	{
+		vedio_player_.DoExit();
+		DoStateCB();
+
+		OnDelayPlayNext();
+	}
+}
+
+void VedioPlayerForm::OnSchedualStateCB()
+{
+	vedio_state_timer_.Cancel();
+	StdClosure task = nbase::Bind(&VedioPlayerForm::DoStateCB, this);
+	auto cb = vedio_state_timer_.ToWeakCallback(task);
+	nbase::ThreadManager::PostRepeatedTask(kThreadUI, cb, nbase::TimeDelta::FromSeconds(10));
+}
+
+void VedioPlayerForm::DoStateCB()
+{
+	if (vedio_state_call_back_)
+	{
+		vedio_state_call_back_();
+	}
+
+	//保存当前播放item的进度
+
+}
+
+void VedioPlayerForm::OnDelayPlayNext()
+{
+	StdClosure task = nbase::Bind(&VedioPlayerForm::OnPlayNext, this);
+	nbase::ThreadManager::PostDelayedTask(kThreadUI, task, nbase::TimeDelta::FromMilliseconds(300));
+}
+
+void VedioPlayerForm::OnPlayNext()
+{
+
+}
+
+void VedioPlayerForm::OnHandleItemPlay()
+{
+
 }
 

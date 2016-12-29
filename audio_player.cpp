@@ -47,4 +47,9 @@ void AudioPlayer::SetProgressCb(ProgressValCb pro_cb)
 	co_player_.set_pro_val_cb(pro_cb);
 }
 
+void AudioPlayer::DoExit()
+{
+	co_player_.eixt();
+}
+
 

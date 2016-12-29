@@ -10,6 +10,7 @@ public:
 
 	void Init();
 	void Pause();
+	void DoExit();
 	void Play(const char* filename, HWND hWnd);
 	void SeekPos(int pos);
 	void SetStartTimeCb(TimeLabelCb start_cb);

@@ -34,12 +34,22 @@ private:
 	void OnSetPlayUrl(std::string path);
 	void OnDelayClose();
 	void OnClose();
+	void OnDelayPlayNext();
+	void OnPlayNext();
+	void OnHandlePlayNext();
+	void OnHandleItemPlay();
+	void OnSchedualStateCB();  //外部定时回调
+	void DoStateCB();
 
 protected:
 private:
+	HWND hwnd_;
+	int vedio_list_index_ = 0;
 	bool is_first_ = true;
 	bool slider_change_ = false;
 	int slider_change_pos_ = 0;
+	int end_ts_ = 0;
+	int current_ts_ = 0;
 	ui::Label* start_time_;
 	ui::Label* end_time_;
 	ui::Slider* input_vedio_;
@@ -47,5 +57,10 @@ private:
 	ui::Button* btn_pause_;
 	ui::Control* vedio_show_;
 	std::string play_url_;
+	ui::ListBox* item_list_;
+	ui::VBox* list_box_;
+
 	VedioPlayer vedio_player_;
+	nbase::WeakCallbackFlag vedio_state_timer_;  //外部回调定时器
+	StdClosure vedio_state_call_back_;   //外部回调使用
 };

@@ -12,7 +12,6 @@ AudioPlayerForm::AudioPlayerForm()
 
 AudioPlayerForm::~AudioPlayerForm()
 {
-
 }
 
 std::wstring AudioPlayerForm::GetSkinFolder()
@@ -55,6 +54,12 @@ ui::Control* AudioPlayerForm::CreateControl(const std::wstring& pstrClass)
 	return NULL;
 }
 
+void AudioPlayerForm::OnFinalMessage(HWND hWnd)
+{
+	audio_player_.DoExit();
+	__super::OnFinalMessage(hWnd);
+}
+
 void AudioPlayerForm::InitWindow()
 {
 	SetIcon(IDI_ICON);
@@ -71,12 +76,22 @@ void AudioPlayerForm::InitWindow()
 	input_vedio_->AttachButtonDown(nbase::Bind(&AudioPlayerForm::OnSliderButtonDown, this, std::placeholders::_1));
 	input_vedio_->AttachValueChange(nbase::Bind(&AudioPlayerForm::OnSliderEventChange, this, std::placeholders::_1));
 
-	auto st_tm_cb = ToWeakCallback([=](std::wstring path){
-		start_time_->SetText(path);
+	auto st_tm_cb = ToWeakCallback([=](int tns){
+		int thh, tmm, tss;
+		thh = tns / 3600;
+		tmm = (tns % 3600) / 60;
+		tss = (tns % 60);
+		std::wstring timelong = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
+		start_time_->SetText(timelong);
 	});
 
-	auto end_tm_cb = ToWeakCallback([=](std::wstring path){
-		end_time_->SetText(path);
+	auto end_tm_cb = ToWeakCallback([=](int tns){
+		int thh, tmm, tss;
+		thh = tns / 3600;
+		tmm = (tns % 3600) / 60;
+		tss = (tns % 60);
+		std::wstring timelong = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
+		end_time_->SetText(timelong);
 	});
 
 	auto pr_val_cb = ToWeakCallback([=](int val){
@@ -171,3 +186,5 @@ bool AudioPlayerForm::OnSliderEventChange(ui::EventArgs* arg)
 	}
 	return true;
 }
+
+

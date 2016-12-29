@@ -1320,15 +1320,9 @@ void CorePlayer::video_refresh(void *opaque, double *remaining_time)
 			int vedio_current_ts = get_master_clock(is);
 			if (vedio_current_ts >=0)
 			{
-				int thh, tmm, tss;
-				thh = vedio_current_ts / 3600;
-				tmm = (vedio_current_ts % 3600) / 60;
-				tss = (vedio_current_ts % 60);
-				//currentclockstr.Format(_T("%02d:%02d:%02d"),thh,tmm,tss);
-				std::wstring currentclockstr = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
 				if (start_label_cb_)
 				{
-					start_label_cb_(currentclockstr);
+					start_label_cb_(vedio_current_ts);
 				}
 
 				if (is->ic)
@@ -3710,18 +3704,10 @@ void CorePlayer::init_params(VideoState *is)
 	if (pFormatCtx!=NULL)
 	{
 		//转换成hh:mm:ss形式
-
-		int tns, thh, tmm, tss;
-		tns = (pFormatCtx->duration) / 1000000;
-		thh = tns / 3600;
-		tmm = (tns % 3600) / 60;
-		tss = (tns % 60);
-		//timelong.Format(_T("%02d:%02d:%02d"),thh,tmm,tss);
-		std::wstring timelong = nbase::StringPrintf(L"%02d:%02d:%02d", thh, tmm, tss);
-
+		int tns = (pFormatCtx->duration) / 1000000;
 		if (end_label_cb_)
 		{
-			end_label_cb_(timelong);
+			end_label_cb_(tns);
 		}
 	}
 
